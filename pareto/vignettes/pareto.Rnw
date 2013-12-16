@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage[left=2.54cm,right=2.54cm,top=2.54cm,bottom=2.54cm]{geometry}
+
+% \VignetteIndexEntry{Using the Pareto Package}
+
+\title{Using the \texttt{Pareto} Package}
+\author{Jacob Simmering}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\maketitle
+
+<<echo=false,results=hide>>=
+library(ggplot2)
+library(pareto)
+library(xtable)
+@ 
+
+\section{Introduction}
+The \texttt{pareto} package includes the standard distribution 
+functions for the Pareto distribution: \texttt{dpareto()} to calculate the
+density, \texttt{ppareto()} to the cdf, \texttt{qpareto()} to calculate the
+inverse cdf and \texttt{rparteo()} and \texttt{rcpareto()} provide random 
+samples. The only difference between \texttt{rpareto()} and \texttt{rcpareto()}
+is that the latter moves most of the $O(N)$ operations to C for speed.
+
+\section{Simple Examples}
+Some simple examples:
+<<>>=
+dpareto(2, 1, 1)
+ppareto(2, 1, 1)
+qpareto(0.5, 1, 1)
+rpareto(1, 1, 1)
+rcpareto(1, 1, 1)
+@
+The functions also support returning or accepting log probabilities as 
+appropriate:
+<<>>=
+dpareto(2, 1, 1, TRUE)
+ppareto(2, 1, 1, TRUE)
+qpareto(0.5, 1, 1, TRUE)
+@
+
+\section{Vectorized Examples}
+The functions are also designed to accept vector arguments with lengths greater
+than 1 element. When provided with this input, the functions will recycle the
+shorter vectors until they match the longest vector in the input. This is 
+the same as the behavior of other density functions, such as those of the gamma
+family. 
+<<>>=
+dpareto(1:3, 1:2, 1:2)
+ppareto(1:4, 1, 1)
+qpareto(seq(0.1, 0.9, 0.2), 1, 1)
+rpareto(5, 1:2, 1:3)
+rcpareto(5, 1:2, 1:3)
+@
+
+The density and cdf of the Pareto(1, 1) distribution is shown in 
+Table~\ref{tab:pareto}.
+<<results=tex,echo=false>>=
+m <- cbind(1:10, dpareto(1:10, 1, 1), 
+           ppareto(1:10, 1, 1))
+colnames(m)<-c("x", "dpareto(x)", "ppareto(x)")
+xtable(as.data.frame(m),align=rep("c",4),
+       caption=paste("The density and cdf of the Pareto(1, 1) distribution"),
+       label="tab:pareto")
+@ 
+
+A graph of these results is in Figure~\ref{fig:pareto}.
+
+\begin{figure}
+  \centering
+<<fig=TRUE,width=8,echo=false>>=
+x <- seq(0, 20, 0.001)
+example <- data.frame(x = rep(x, 2),
+                      y = c(dpareto(x, 1, 1), ppareto(x, 1, 1)),
+                      fun = factor(c(rep("dpareto", length(x)), 
+                                     rep("ppareto", length(x)))))
+ggplot(example) + geom_line(aes(x = x, y = y, color = fun)) + 
+  scale_x_continuous("X") + scale_y_continuous("Density") + 
+  theme_bw()
+@  
+  \caption{Plots of the Pareto(1, 1) density and cumulative density functions.}
+  \label{fig:pareto}
+\end{figure}
+
+\section{Parallelization}
+
+The functions \texttt{p.dpareto, p.ppareto, p.qpareto} have Open MP support for 
+parallel computation. For reasonable lengths of arguments, (e.g., under $10^5$ 
+or $10^6$) there is no significant increase in performance with parallelization.
+In fact, for very short inputs (lengths of 100 to 1000), the overhead required 
+by Open MP increases the total computational time relative to the standard 
+functions. 
+
+However, for very long inputs, significant speed ups are possible. See Figure 
+\ref{fig:speeds} and Figure \ref{fig:speedsLog} for an illustration of the 
+potential gain by shifting to 2 or 4 cores from the standard function. 
+For instance, with a vector of length $100,000,000$, \texttt{dpareto} takes 
+25.83 seconds. Switching to \texttt{p.dpareto} and using 2 cores cuts the time
+to 15.81 seconds and using 4 cores can cut the time down to 10.96 seconds. This
+is 38.79\% and a 57.57\% reduction in run time by using multiple threads. 
+
+The functions are used in the same way as the single thread functions, however,
+they take one additional argument, \texttt{P}, which is the number of threads 
+to use in the computation. For example,
+
+<<>>=
+p.dpareto(1:3, 1:2, 1:2, P = 2)
+p.ppareto(1:4, 1, 1, P = 2)
+p.qpareto(seq(0.1, 0.9, 0.2), 1, 1, P = 2)
+@
+
+\end{document}
+
+

@@ -1,0 +1,11 @@
+Package: pareto
+Type: Package
+Title: Contains functions to randomly sample the Pareto distribution and calculate the Pareto density, cdf and inverse cdf with multi-core support
+Version: 4.0
+Date: 2013-03-04
+Author: Jacob Simmering
+Maintainer: Jacob Simmering <jacob-simmering@uiowa.edu>
+Description: Contains functions the standard r, q, d and p density functions 
+Suggests: xtable, ggplot2
+License: GPL
+Packaged: 2013-04-13 03:48:06 UTC; iacobus
