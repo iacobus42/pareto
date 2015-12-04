@@ -5,7 +5,8 @@ A package for calculating the density, cdf, inverse cdf and random
 replicates of the Pareto distribution using R. Support for C using
 <code>.C()</code> in R is provided as well as multicore OpenMP. 
 The normal "d, p, r, q" functions are provided (all run in C). Also
-the functions with a leading "p." provide multithread support.
+the functions with a leading "p." provide multithread support using
+OpenMP.
 
 Depends on <code>ggplot2</code> and <code>xtable</code> for building
 the vignette. But really who doesn't already have them installed? If
